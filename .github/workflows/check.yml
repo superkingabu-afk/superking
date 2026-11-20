@@ -1,0 +1,141 @@
+name: Galaxy Spectator
+
+on:
+  # -- Run automatically every 6 hours --
+  schedule:
+    - cron: '0 * * * *'
+
+  # -- ONE CLICK manual trigger from phone (GitHub app) --
+  workflow_dispatch:
+    inputs:
+      action:
+        type: choice
+        description: 'Choose Action'
+        required: true
+        default: 'Run Spectator Check'
+        options:
+          - 'Run Spectator Check'
+          - 'Run Half Batch Check'
+          - 'Create New Account'
+          - 'Add to Permanent List'
+          - 'Remove from Permanent List'
+          - 'Add User'
+          - 'Remove User'
+      users:
+        description: 'Usernames (comma-separated). Leave blank to check all permanent accounts.'
+        required: false
+        default: ''
+
+jobs:
+  check-inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Manage Permanent Accounts
+        if: ${{ contains(github.event.inputs.action, 'Add') || contains(github.event.inputs.action, 'Remove') }}
+        env:
+          ACTION: ${{ github.event.inputs.action }}
+          USERS_INPUT: ${{ github.event.inputs.users }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          node src/manage_accounts.js
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add accounts.txt
+          git diff --staged --quiet || (git commit -m "Update permanent accounts: ${{ github.event.inputs.users }}" && git push)
+
+      - name: Install Playwright browser
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.action == 'Run Spectator Check' || github.event.inputs.action == 'Run Half Batch Check' || github.event.inputs.action == '' }}
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Galaxy Spectator
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.action == 'Run Spectator Check' || github.event.inputs.action == 'Run Half Batch Check' || github.event.inputs.action == '' }}
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          USERS: ${{ github.event.inputs.users }}
+          ACTION: ${{ github.event.inputs.action }}
+        run: |
+          node src/checker.js
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add schedule.json
+            git diff --staged --quiet || (git commit -m "Update schedule lastRun timestamp" && git push)
+          fi
+
+      - name: Upload screenshot on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshot
+          path: "*.png"
+          retention-days: 3
+
+  # =====================================================================
+  # ACCOUNT CREATOR - triggered manually via "Create New Account"
+  # =====================================================================
+  create-account:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    if: github.event.inputs.action == 'Create New Account'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install chromium --with-deps
+
+      - name: Create New Galaxy Account
+        env:
+          TG_TOKEN:   ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: node src/account_creator.js
+
+      - name: Commit created_accounts.txt
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add created_accounts.txt || true
+          git diff --staged --quiet || (git commit -m "New account created" && git push) || true
+
+      - name: Upload creator screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: creator-screenshots
+          path: "creator_*.png"
+          retention-days: 7
