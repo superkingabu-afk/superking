@@ -1,0 +1,13 @@
+{
+  "name": "galaxy-spectator",
+  "version": "1.0.0",
+  "description": "Galaxy game inventory tracker",
+  "main": "src/checker.js",
+  "scripts": {
+    "check": "node src/checker.js",
+    "install-browser": "npx playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}
