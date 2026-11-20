@@ -7,18 +7,7 @@ const RECOVERY_CODE = process.env.RECOVERY_CODE || '2aas0givut';
 
 // Fallback usernames if accounts.txt is not present:
 const FALLBACK_USERNAMES = [
-  'Thdr',
-  'Theddro',
-  'Thecordet',
-  'TONOBE',
-  'Dikishu',
-  'Dhikiti',
-  'Eaudhv',
-  'Rukshi',
-  'Darklor',
-  'Shor',
-  'Pastabada',
-  'thboiler'
+  'Thdr'
 ];
 
 function getPermanentUsernames() {
