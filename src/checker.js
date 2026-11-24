@@ -7,7 +7,18 @@ const RECOVERY_CODE = process.env.RECOVERY_CODE || '2aas0givut';
 
 // Fallback usernames if accounts.txt is not present:
 const FALLBACK_USERNAMES = [
-  'Thdr'
+  'Thdr',
+  'Theddro',
+  'Thecordet',
+  'TONOBE',
+  'Dikishu',
+  'Dhikiti',
+  'Eaudhv',
+  'Rukshi',
+  'Darklor',
+  'Shor',
+  'Pastabada',
+  'thboiler'
 ];
 
 function getPermanentUsernames() {
@@ -472,10 +483,10 @@ function formatBatchMessage(batchResults, batchNum, totalBatches, totalAllUsers,
 
   // Money calculation: Skey, Clay, FCB, EBB
   const batchMoney = (
-    (totalSkey * 3.5 * 1.1) +
-    (totalClay * 3.5 * 1.1) +
-    (totalFCB * 1.1) +
-    (totalEBB * 3.7 * 1.1)
+    (totalSkey * 3.5) +
+    (totalClay * 3.4) +
+    (totalFCB * 1.0) +
+    (totalEBB * 3.7)
   ).toFixed(2);
   lines.push(`💰 *Total Money:* \`${batchMoney}\` (Skey: ${totalSkey}, Clay: ${totalClay}, FCB: ${totalFCB}, EBB: ${totalEBB})`);
 
@@ -491,10 +502,10 @@ function formatBatchMessage(batchResults, batchNum, totalBatches, totalAllUsers,
         grandEBB  += (r.EBB || 0);
       });
       const grandMoney = (
-        (grandSkey * 3.5 * 1.1) +
-        (grandClay * 3.5 * 1.1) +
-        (grandFCB * 1.1) +
-        (grandEBB * 3.7 * 1.1)
+        (grandSkey * 3.5) +
+        (grandClay * 3.4) +
+        (grandFCB * 1.0) +
+        (grandEBB * 3.7)
       ).toFixed(2);
       lines.push(`\n🏆 *Grand Total Money (All ${totalAllUsers}):* \`${grandMoney}\``);
     }
