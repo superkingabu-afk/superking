@@ -1,5 +1,5 @@
 {
   "enabled": true,
-  "intervalHours": 2,
+  "intervalHours": 1,
   "lastRun": 0
 }
