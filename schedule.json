@@ -1,5 +1,5 @@
 {
-  "enabled": true,
-  "intervalHours": 1,
-  "lastRun": 1795713028720
+  "enabled": false,
+  "intervalHours": 6,
+  "lastRun": 0
 }
